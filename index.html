@@ -107,7 +107,7 @@
 
   <!-- Taskbar -->
   <div class="taskbar">
-    <button class="start-btn" onclick="alert('Ram WebOS v2.1 Ready!')">Start</button>
+    <button class="start-btn" onclick="alert('Ram WebOS v2.2 Ready!')">Start</button>
   </div>
 
   <script>
@@ -119,20 +119,42 @@
       document.getElementById(id).style.display = 'none';
     }
 
+    // புதுப்பிக்கப்பட்ட புத்திசாலித்தனமான தேடல் பங்க்ஷன்
     function searchWeb() {
-      let query = document.getElementById('url-input').value;
+      let query = document.getElementById('url-input').value.trim();
       let frame = document.getElementById('browser-frame');
-      if (query.startsWith('http://') || query.startsWith('https://')) {
-        frame.src = query;
+
+      if (!query) return;
+
+      // 1. YouTube வீடியோ லிங்காக இருந்தால் embed லிங்காக மாற்றும்
+      if (query.includes('youtube.com/watch?v=')) {
+        let videoId = query.split('v=')[1].split('&')[0];
+        frame.src = 'https://www.youtube.com/embed/' + videoId;
+        return;
+      } 
+
+      // 2. URL அமைத்தல்
+      let targetUrl = query;
+      if (!query.startsWith('http://') && !query.startsWith('https://')) {
+        targetUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+      }
+
+      // 3. iframe அனுமதி இல்லாத தளங்களை கண்டறிந்து புதிய Tab-ல் திறத்தல்
+      const restrictedSites = ['google.com', 'youtube.com', 'facebook.com', 'instagram.com', 'github.com'];
+      let isRestricted = restrictedSites.some(site => targetUrl.toLowerCase().includes(site));
+
+      if (isRestricted && !targetUrl.includes('embed')) {
+        alert('பாதுகாப்பு காரணங்களால் இந்த தளம் புதிய Tab-ல் திறக்கப்படுகிறது!');
+        window.open(targetUrl, '_blank');
       } else {
-        frame.src = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+        frame.src = targetUrl;
       }
     }
 
     function installApp() {
       let name = document.getElementById('app-name').value;
       let url = document.getElementById('app-url').value;
-      if (!name || !url) { alert('நன்கு சரிபார்த்து விபரங்களை உள்ளிடவும்'); return; }
+      if (!name || !url) { alert('விபரங்களை சரியாக உள்ளிடவும்'); return; }
 
       let desktop = document.getElementById('desktop');
       let newIcon = document.createElement('div');
