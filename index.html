@@ -119,7 +119,7 @@
       document.getElementById(id).style.display = 'none';
     }
 
-    // புதுப்பிக்கப்பட்ட புத்திசாலித்தனமான தேடல் பங்க்ஷன்
+    // புதுப்பிக்கப்பட்ட தேடல் பங்க்ஷன்
     function searchWeb() {
       let query = document.getElementById('url-input').value.trim();
       let frame = document.getElementById('browser-frame');
@@ -136,11 +136,15 @@
       // 2. URL அமைத்தல்
       let targetUrl = query;
       if (!query.startsWith('http://') && !query.startsWith('https://')) {
-        targetUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+        if (query.includes('.') && !query.includes(' ')) {
+          targetUrl = 'https://' + query;
+        } else {
+          targetUrl = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+        }
       }
 
-      // 3. iframe அனுமதி இல்லாத தளங்களை கண்டறிந்து புதிய Tab-ல் திறத்தல்
-      const restrictedSites = ['google.com', 'youtube.com', 'facebook.com', 'instagram.com', 'github.com'];
+      // 3. iframe அனுமதி இல்லாத வெப்சைட்களை புதிய Tab-ல் திறக்கும்
+      const restrictedSites = ['google.com', 'youtube.com', 'facebook.com', 'instagram.com', 'github.com', 'vscode.dev'];
       let isRestricted = restrictedSites.some(site => targetUrl.toLowerCase().includes(site));
 
       if (isRestricted && !targetUrl.includes('embed')) {
