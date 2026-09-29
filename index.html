@@ -1,282 +1,163 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ta">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ram Software WebOS</title>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ram Software WebOS</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+    body { background: linear-gradient(135deg, #1e3c72, #2a5298); height: 100vh; overflow: hidden; position: relative; }
+    
+    /* Desktop & Grid */
+    .desktop { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 15px; padding: 20px; }
+    .icon { display: flex; flex-direction: column; align-items: center; color: white; cursor: pointer; text-shadow: 1px 1px 3px black; font-size: 12px; text-align: center; }
+    .icon img, .icon-box { width: 50px; height: 50px; border-radius: 12px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 5px; }
+    
+    /* Window UI */
+    .window { position: absolute; top: 10%; left: 5%; width: 90%; height: 75%; background: white; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.3); display: none; flex-direction: column; z-index: 10; overflow: hidden; }
+    .window-header { background: #333; color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: #ff5f56; border: none; color: white; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-weight: bold; }
+    .window-body { flex: 1; padding: 10px; overflow-y: auto; }
+    
+    /* Browser & Toolbar */
+    .browser-bar { display: flex; gap: 5px; margin-bottom: 10px; }
+    .browser-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+    .browser-bar button { padding: 8px 15px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    iframe { width: 100%; height: calc(100% - 40px); border: none; }
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1920&auto=format&fit=crop') no-repeat center center/cover;
-        }
-
-        /* Desktop Grid */
-        #desktop {
-            width: 100%;
-            height: calc(100% - 60px);
-            padding: 20px;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
-            grid-auto-rows: 95px;
-            gap: 15px;
-            align-content: start;
-        }
-
-        .app-icon {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-            cursor: pointer;
-            border-radius: 12px;
-            padding: 8px;
-            transition: all 0.2s ease;
-        }
-
-        .app-icon:active {
-            transform: scale(0.9);
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        .app-icon i {
-            font-size: 36px;
-            margin-bottom: 6px;
-        }
-
-        .app-icon span {
-            font-size: 11px;
-            text-align: center;
-            font-weight: 500;
-        }
-
-        /* Window Layout */
-        .window {
-            position: absolute;
-            top: 4%;
-            left: 3%;
-            width: 94%;
-            height: 84%;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 16px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            display: none;
-            flex-direction: column;
-            z-index: 10;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.5);
-            animation: winPop 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
-        }
-
-        @keyframes winPop {
-            from { transform: scale(0.85); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .window-header {
-            background: rgba(240, 240, 240, 0.85);
-            padding: 12px 16px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(0,0,0,0.08);
-        }
-
-        .window-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #222;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .close-btn {
-            background: #ff5f56;
-            border: none;
-            color: white;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .window-body {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            color: #222;
-        }
-
-        /* Taskbar */
-        #taskbar {
-            position: fixed;
-            bottom: 0;
-            width: 100%;
-            height: 60px;
-            background: rgba(245, 245, 245, 0.8);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            border-top: 1px solid rgba(255,255,255,0.4);
-        }
-
-        .taskbar-center {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .taskbar-icon {
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            font-size: 22px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .taskbar-icon:active {
-            transform: scale(0.85);
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .taskbar-right {
-            position: absolute;
-            right: 15px;
-            color: #333;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        /* Start Menu */
-        #start-menu {
-            position: fixed;
-            bottom: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 310px;
-            background: rgba(250, 250, 250, 0.95);
-            backdrop-filter: blur(30px);
-            border-radius: 16px;
-            padding: 20px;
-            display: none;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-            z-index: 101;
-            border: 1px solid rgba(255,255,255,0.5);
-        }
-
-        .start-search {
-            width: 100%;
-            padding: 10px 15px;
-            border-radius: 20px;
-            border: 1px solid #ddd;
-            outline: none;
-            margin-bottom: 15px;
-            font-size: 13px;
-        }
-
-        /* App Store UI */
-        .store-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 15px;
-        }
-
-        .store-card {
-            background: white;
-            border-radius: 12px;
-            padding: 12px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-            text-align: center;
-        }
-
-        .store-card i {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .store-card h4 {
-            font-size: 13px;
-            margin-bottom: 5px;
-        }
-
-        .install-btn {
-            margin-top: 8px;
-            background: #0078d4;
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .install-btn.installed {
-            background: #4CAF50;
-        }
-
-        iframe, video {
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 10px;
-        }
-
-        .notepad-area {
-            width: 100%;
-            height: 100%;
-            border: none;
-            outline: none;
-            background: transparent;
-            font-size: 16px;
-            resize: none;
-            user-select: text;
-            -webkit-user-select: text;
-        }
-    </style>
+    /* Taskbar */
+    .taskbar { position: absolute; bottom: 0; width: 100%; height: 50px; background: rgba(0,0,0,0.8); display: flex; align-items: center; padding: 0 10px; gap: 15px; }
+    .start-btn { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+  </style>
 </head>
 <body>
 
-    <!-- Desktop -->
-    <div id="desktop" onclick="closeStartMenu()">
-        <div class="app-icon" onclick="openApp('App Store', getStoreHTML())">
-            <i class="fa-solid fa-bag-shopping" style="color: #ff9800;"></i>
-            <span>App Store</span>
-        </div>
-        <div class="app-icon" onclick="openApp('My Files', getFilesHTML())">
-            <i class="fa-solid fa-folder-closed" style="color: #ffd04b;"></i>
-            <span>My Files</span>
-        </div>
-        <div clas
+  <!-- Desktop Icons -->
+  <div class="desktop" id="desktop">
+    <div class="icon" onclick="openWindow('browser-window')">
+      <div class="icon-box">🌐</div>
+      <span>Google Search</span>
+    </div>
+    <div class="icon" onclick="openWindow('youtube-window')">
+      <div class="icon-box">▶️</div>
+      <span>YouTube</span>
+    </div>
+    <div class="icon" onclick="openWindow('appstore-window')">
+      <div class="icon-box">🛍️</div>
+      <span>App Store</span>
+    </div>
+    <div class="icon" onclick="openWindow('notepad-window')">
+      <div class="icon-box">📝</div>
+      <span>Notepad</span>
+    </div>
+  </div>
+
+  <!-- Google / Web Browser Window -->
+  <div id="browser-window" class="window">
+    <div class="window-header">
+      <span>Ram Web Browser</span>
+      <button class="close-btn" onclick="closeWindow('browser-window')">X</button>
+    </div>
+    <div class="window-body">
+      <div class="browser-bar">
+        <input type="text" id="url-input" placeholder="Search Google or enter Website URL...">
+        <button onclick="searchWeb()">Go</button>
+      </div>
+      <iframe id="browser-frame" src="https://www.bing.com"></iframe>
+    </div>
+  </div>
+
+  <!-- YouTube Window -->
+  <div id="youtube-window" class="window">
+    <div class="window-header">
+      <span>YouTube App</span>
+      <button class="close-btn" onclick="closeWindow('youtube-window')">X</button>
+    </div>
+    <div class="window-body" style="padding:0;">
+      <iframe src="https://www.youtube.com/embed" style="width:100%; height:100%;"></iframe>
+    </div>
+  </div>
+
+  <!-- App Store Window -->
+  <div id="appstore-window" class="window">
+    <div class="window-header">
+      <span>Ram App Store</span>
+      <button class="close-btn" onclick="closeWindow('appstore-window')">X</button>
+    </div>
+    <div class="window-body">
+      <h3>Install New Web Apps</h3>
+      <p style="margin-bottom:10px; color:#666;">ஏதேனும் வெப்சைட் / ஆப்களின் பெயர் மற்றும் URL உள்ளிட்டு Install செய்யவும்:</p>
+      <input type="text" id="app-name" placeholder="App Name (eg: Wikipedia)" style="width:100%; padding:8px; margin-bottom:8px;">
+      <input type="text" id="app-url" placeholder="App URL (eg: https://www.wikipedia.org)" style="width:100%; padding:8px; margin-bottom:8px;">
+      <button onclick="installApp()" style="padding:8px 15px; background:green; color:white; border:none; border-radius:5px; cursor:pointer;">Install App to Desktop</button>
+    </div>
+  </div>
+
+  <!-- Notepad Window -->
+  <div id="notepad-window" class="window">
+    <div class="window-header">
+      <span>Notepad</span>
+      <button class="close-btn" onclick="closeWindow('notepad-window')">X</button>
+    </div>
+    <div class="window-body">
+      <textarea id="note-data" style="width:100%; height:80%; padding:10px;" placeholder="Type something here..."></textarea>
+      <button onclick="saveNote()" style="margin-top:5px; padding:5px 10px;">Save Note</button>
+    </div>
+  </div>
+
+  <!-- Taskbar -->
+  <div class="taskbar">
+    <button class="start-btn" onclick="alert('Ram WebOS v2.1 Ready!')">Start</button>
+  </div>
+
+  <script>
+    function openWindow(id) {
+      document.getElementById(id).style.display = 'flex';
+    }
+
+    function closeWindow(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function searchWeb() {
+      let query = document.getElementById('url-input').value;
+      let frame = document.getElementById('browser-frame');
+      if (query.startsWith('http://') || query.startsWith('https://')) {
+        frame.src = query;
+      } else {
+        frame.src = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+      }
+    }
+
+    function installApp() {
+      let name = document.getElementById('app-name').value;
+      let url = document.getElementById('app-url').value;
+      if (!name || !url) { alert('நன்கு சரிபார்த்து விபரங்களை உள்ளிடவும்'); return; }
+
+      let desktop = document.getElementById('desktop');
+      let newIcon = document.createElement('div');
+      newIcon.className = 'icon';
+      newIcon.innerHTML = `<div class="icon-box">📌</div><span>${name}</span>`;
+      newIcon.onclick = function() {
+        document.getElementById('url-input').value = url;
+        searchWeb();
+        openWindow('browser-window');
+      };
+      desktop.appendChild(newIcon);
+      alert(name + ' Desktop-ல் சேர்க்கப்பட்டது!');
+      closeWindow('appstore-window');
+    }
+
+    function saveNote() {
+      localStorage.setItem('user_note', document.getElementById('note-data').value);
+      alert('குறிப்பு சேமிக்கப்பட்டது!');
+    }
+
+    window.onload = function() {
+      if(localStorage.getItem('user_note')) {
+        document.getElementById('note-data').value = localStorage.getItem('user_note');
+      }
+    }
+  </script>
+</body>
+</html>
